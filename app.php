@@ -64,9 +64,10 @@ $application->register('run-task')
         }
 
         /** @var Task $runner */
+        $input = trim(file_get_contents($filename));
         $runner = require __DIR__ . "/src/day$day.php";
-        $output->writeln("Task 1: " . $runner->task1($runner->parseInput(trim(file_get_contents($filename))))->unwrap());
-        $output->writeln("Task 2: " . $runner->task2($runner->parseInput(trim(file_get_contents($filename))))->unwrap());
+        $output->writeln("Task 1: " . $runner->task1()->unwrap());
+        $output->writeln("Task 2: " . $runner->task2()->unwrap());
         return Command::SUCCESS;
     });
 

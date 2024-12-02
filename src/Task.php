@@ -8,22 +8,19 @@ namespace Robchett\Aoc2024;
  */
 interface Task
 {
-    /**
-     * @param string $input
-     * @return Tinput
-     */
-    function parseInput(string $input): mixed;
+
+    function __construct(string $input);
 
     /**
      * @param Tinput $input
      * @return TaskOutput<Toutput>
      */
-    public function task1(mixed $input): TaskOutput;
+    public function task1(): TaskOutput;
 
     /**
      * @param Tinput $input
      * @return TaskOutput<Toutput>
      */
-    public function task2(mixed $input): TaskOutput;
+    public function task2(): TaskOutput;
 
 }

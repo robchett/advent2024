@@ -2,8 +2,7 @@
 
 namespace Robchett\Aoc2024;
 
-use Robchett\Aoc2024\Input\Document;
-use Robchett\Aoc2024\Structures\Day1\Lists;
+use Robchett\Aoc2024\Input\Table;
 
 /**
  * --- Day 1: Historian Hysteria ---
@@ -75,25 +74,19 @@ use Robchett\Aoc2024\Structures\Day1\Lists;
  * Once again consider your left and right lists. What is their similarity score? 
  * @template-implements Task<int, list<string>>
  */
-return new class implements Task {
+return new class($input) implements Task 
+{
+    protected Table $lists;
 
-    #[\Override] function parseInput(string $input): Lists
+    #[\Override] function __construct(string $input)
     {
-        $pairA = [];
-        $pairB = [];
-
-        foreach (new Document($input)->lines() as $line) {
-            [$a, $b] = $line->words();
-            $pairA[] = (int) $a->word;
-            $pairB[] = (int) $b->word;
-        }
-        return new Structures\Day1\Lists($pairA, $pairB);
+        $this->lists = Table::parse($input)->pivot();
     }
 
-    #[\Override] public function task1(mixed $input): TaskOutput
+    #[\Override] public function task1(): TaskOutput
     {
-        $pairA = $input->A;
-        $pairB = $input->B;
+        $pairA = $this->lists[0];
+        $pairB = $this->lists[1];
 
         sort($pairA);
         sort($pairB);
@@ -106,10 +99,10 @@ return new class implements Task {
         return new TaskOutput($distance);
     }
 
-    #[\Override] public function task2(mixed $input): TaskOutput
+    #[\Override] public function task2(): TaskOutput
     {
-        $pairA = $input->A;
-        $pairB = $input->B;
+        $pairA = $this->lists[0];
+        $pairB = $this->lists[1];
        
         $matches = [];
         $distance = 0;
@@ -121,5 +114,6 @@ return new class implements Task {
             $distance += $pairA[$i] * ($matches[$pairA[$i]] ?? 0);
         }
 
-        return new TaskOutput($distance);    }
+        return new TaskOutput($distance); 
+    }
 };
