@@ -5,7 +5,7 @@ namespace Robchett\Aoc2024;
 /**
  * @template-implements Task<int, list<string>>
  */
-return new class implements Task {
+return new class($input) implements Task {
 
     #[\Override] function __construct(string $input)
     {
