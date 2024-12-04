@@ -2,7 +2,7 @@
 
 namespace Robchett\Aoc2024\Input;
 
-class Table implements \Iterator, \ArrayAccess {
+class TableStr implements \Iterator, \ArrayAccess {
 
     protected int $index;
     public protected(Set) int $sizeY;
@@ -16,7 +16,7 @@ class Table implements \Iterator, \ArrayAccess {
 
     public static function parse(string $content): static {
         $lines = explode("\n", $content);
-        return new static(array_map(fn(string $s) => array_map(fn(string $s) => (int) $s, array_values(array_filter(explode(' ', $s), fn(string $s) => $s !== ''))), $lines));
+        return new static(array_map(fn(string $s) => str_split(trim($s)), $lines));
     }
 
     public function pivot(): Table {
@@ -32,7 +32,7 @@ class Table implements \Iterator, \ArrayAccess {
     public function current(): array {
         return $this->rows[$this->index];
     }
-    public function key(): int {
+    public function key(): string {
         return $this->index;
     }
     public function next(): void {
