@@ -14,9 +14,12 @@ class Table implements \Iterator, \ArrayAccess {
         $this->sizeX = count($rows[0]);
     }
 
-    public static function parse(string $content): static {
+    public static function parse(string $content, $splitMethod = 'explode'): static {
         $lines = explode("\n", $content);
-        return new static(array_map(fn(string $s) => array_map(fn(string $s) => (int) $s, array_values(array_filter(explode(' ', $s), fn(string $s) => $s !== ''))), $lines));
+        return new static(array_map(fn(string $s) => array_map(fn(string $s) => (int) $s, array_values(array_filter(match($splitMethod) {
+            'explode' => explode($seperator, $s),
+            'strSplit' => str_split(trim($s)),
+        }, fn(string $s) => $s !== ''))), $lines));
     }
 
     public function pivot(): Table {
