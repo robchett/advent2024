@@ -29,6 +29,18 @@ class TableStr implements \Iterator, \ArrayAccess {
         return new static($rows);
     }
 
+    public function get(int $y, int $x, string $default): string {
+        if (
+            $y >= $this->sizeY ||
+            $y < 0 ||
+            $x >= $this->sizeX ||
+            $x < 0
+        ) {
+            return $default;
+        }
+        return $this->rows[$y][$x];
+    }
+
     public function current(): array {
         return $this->rows[$this->index];
     }
