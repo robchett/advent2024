@@ -41,6 +41,33 @@ class TableStr implements \Iterator, \ArrayAccess {
         return $this->rows[$y][$x];
     }
 
+    public function set(int $y, int $x, string $value): void {
+        if (
+            $y >= $this->sizeY ||
+            $y < 0 ||
+            $x >= $this->sizeX ||
+            $x < 0
+        ) {
+            throw new \Exception('OOB');
+        }
+        $this->rows[$y][$x] = $value;
+    }
+
+    public function print(array $translations, int $glyphSize = 1): \Imagick 
+    {
+        $image = new \Imagick();
+        $image->newImage($this->sizeX * $glyphSize, $this->sizeY * $glyphSize, new \ImagickPixel('#FFFFFF'), 'png');   
+        for($y = 0; $y < $this->sizeY; $y++) {
+            for($x = 0; $x < $this->sizeX; $x++) {
+                $val = $this->get($y, $x, '');
+                $draw = $translations[$val] ?? null;
+                if ($draw) {
+                    $draw($image, $x, $y);
+                }
+            }
+        }
+        return $image;
+    }  
     public function current(): array {
         return $this->rows[$this->index];
     }

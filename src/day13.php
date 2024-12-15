@@ -95,7 +95,6 @@ return new class($input) implements Task {
                 'P' => [$m3[1], $m3[2]],
             ];
         }
-        print_r($equations);
         $this->equations = $equations;
     }
 
