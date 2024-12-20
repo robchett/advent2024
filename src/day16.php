@@ -177,32 +177,34 @@ return new class($input) implements Task {
                 } else {
                     $bests[] = $currentRoute;
                 }
-                $count = count($paths);
                 continue;            
             }
 
-            $currentRoute[] = [$y, $x, $o];
-            [$dy, $dx, $d1, $d2, $d3] = match($o) {
-                '>' => [0, 1, '^', 'V', '<'],
-                'V' => [1, 0, '>', '<', '^'],
-                '<' => [0, -1, 'V', '^', '>'],
-                '^' => [-1, 0, '<', '>', 'V'],
+            $currentRoute["$y,$x"] = [$y, $x, $o];
+            $cardinals = match($o) {
+                '>' => ['>' => 1, '^' => 1001, '<' => 2001, 'V' => 1001],
+                '^' => ['>' => 1001, '^' => 1, '<' => 1001, 'V' => 2001],
+                '<' => ['>' => 2001, '^' => 1001, '<' => 1, 'V' => 1001],
+                'V' => ['>' => 1001, '^' => 2001, '<' => 1001, 'V' => 1],
             };
-            if (
-                (!isset($paths[($y + $dy) . "," . ($x + $dx) . ",$d"]) || $paths[($y + $dy) . "," . ($x + $dx) . ",$d"][3] >= $score + 1000)
-                && $this->map->get($y + $dy, $x + $dx, '#') != '#'
-            ) {            
-                $paths[] = [$y + $dy, $x + $dx, $o, $score + 1, $currentRoute];
+            foreach ($cardinals as $do => $ds) {
+                [$dy, $dx] = match ($do) {
+                    '>' => [0,1],
+                    '^' => [-1,0],
+                    '<' => [0,-1],
+                    'V' => [1,0],
+                };
+                $ny = $y + $dy;
+                $nx = $x + $dx;
+                if (
+                    !isset($currentRoute["$ny,$nx"]) &&
+                    $this->map->get($ny, $nx, '#') != '#' &&
+                    (($paths["$nx,$ny,$do"][3] ?? PHP_INT_MAX) >= $score + $ds)
+                ) {            
+                    $paths["$ny,$nx,$do"] = [$ny, $nx, $do, $score + $ds, $currentRoute];
+                }
             }
-            if (!isset($paths["$y,$x,$d1"]) || $paths["$y,$x,$d1"][3] >= $score + 1000) {
-                $paths["$y,$x,$d1"] = [$y, $x, $d1, $score + 1000, $currentRoute];
-            }
-            if (!isset($paths["$y,$x,$d2"]) || $paths["$y,$x,$d2"][3] >= $score + 1000) {
-                $paths["$y,$x,$d2"] = [$y, $x, $d2, $score + 1000, $currentRoute];
-            }
-            if (!isset($paths["$y,$x,$d3"]) || $paths["$y,$x,$d3"][3] >= $score + 1000) {
-                $paths["$y,$x,$d3"] = [$y, $x, $d3, $score + 3000, $currentRoute];
-            }
+           
 
         } while($paths);
 
