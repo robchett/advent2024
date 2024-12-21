@@ -111,24 +111,33 @@ return new class($input) implements Task {
                 5 => $r2,
                 6 => $r3,
             };
-            $in = match($inId) {
-                0 => function($op, $comboOp) use (&$r1, &$r2, &$r3, &$ip, &$output) { $r1 = floor($r1 / pow(2, $comboOp)); },
-                1 => function($op, $comboOp) use (&$r1, &$r2, &$r3, &$ip, &$output) { $r2 = $r2 ^ $op; },
-                2 => function($op, $comboOp) use (&$r1, &$r2, &$r3, &$ip, &$output) { $r2 = $comboOp % 8; },
-                3 => function($op, $comboOp) use (&$r1, &$r2, &$r3, &$ip, &$output) { $r1 && ($ip = $op); },
-                4 => function($op, $comboOp) use (&$r1, &$r2, &$r3, &$ip, &$output) { $r2 = $r2 ^ $r3; },
-                5 => function($op, $comboOp) use (&$r1, &$r2, &$r3, &$ip, &$output) { array_push($output, $comboOp % 8); },
-                6 => function($op, $comboOp) use (&$r1, &$r2, &$r3, &$ip, &$output) { $r2 = floor($r1 / pow(2, $comboOp)); },
-                7 => function($op, $comboOp) use (&$r1, &$r2, &$r3, &$ip, &$output) { $r3 = floor($r1 / pow(2, $comboOp)); },
-            };
-            $in($op, $comboOp);
-            if ($inId == 5 && $part2 && end($output) != ($commands[count($output) - 1] ?? -1)) {
-                return '';
-            }
 
-            if ($inId != 3 || ! $r1) {
-                $ip += 2;
+            if ($inId == 0) {
+                $r1 = floor($r1 / pow(2, $comboOp)); 
+            } elseif ($inId == 1) {
+                $r2 = $r2 ^ $op;
+            } elseif ($inId == 2) {
+                $r2 = $comboOp % 8; 
+            } elseif ($inId == 3) {
+                if ($r1) {
+                    $ip = $op;
+                    continue;
+                }
+            } elseif ($inId == 4) {
+                $r2 = $r2 ^ $r3; 
+            } elseif ($inId == 5) {                
+                $val = $comboOp % 8;
+                array_push($output, $val); 
+                if ($part2 && $val != ($commands[count($output) - 1] ?? -1)) {
+                    return '';
+                }
+            } elseif ($inId == 6) {
+                $r2 = floor($r1 / pow(2, $comboOp)); 
+            } elseif ($inId == 7) {
+                $r3 = floor($r1 / pow(2, $comboOp)); 
             }
+            
+            $ip+=2;
         }
         return implode(",", $output);
     }
@@ -140,17 +149,67 @@ return new class($input) implements Task {
 
     #[\Override] public function task2(): TaskOutput
     {
-        $target = implode(',', $this->commands);
+        // Compile the machine code:
+        //2,4 bst($r1)
+        //1,1 bxl(1) 
+        //7,5 cdv($r2)
+        //1,5 bxl(5)
+        //4,2 bxc(2)
+        //5,5 out($r2)
+        //0,3 adv(3)
+        //3,0 jnx(0)  
+        // Realise anser is between 35,184,372,088,832 and 281,474,976,710,656                
+
+        // $r2 = $r1 % 8; 
+        // $r2 = $r2 ^ 1;
+        // $r3 = floor($r1 / pow(2, $r2)); 
+        // $r2 = $r2 ^ 5;  
+        // $r2 = $r2 ^ $r3; 
+        // $val = $r2 % 8;
+
+        // $val = (($r1 % 8) ^ 1 ^ 5) ^ floor($r1 / pow(2, ($r1 % 8) ^ 1)) % 8; 
+        // Still to many iterations
+
+        // Realise the digit in output at positon x changes every 8^(x-1) iterations.
+        // Work backwards from the last digit (which changes least frequently) 
+        // Solve in up-to 8 x commandLength iterations
+
+        $target = implode('', array_reverse($this->commands));
+
+        $foundDigits = 1;
+        $lockedDigits = substr($target, 0, $foundDigits);
+        $incrementor =  pow(8, strlen($target) - strlen($lockedDigits) - 1);
         $i = 0;
-        while (true) {
-            if (($i % 100000) == 0) {
-                print_r("$i\n");
+        $loop = 0;
+
+        do {
+            $r1 = $i;
+            $r2 = $this->r2;
+            $r3 = $this->r3;
+            $output = '';
+
+            while(true) {    
+                $val = (($r1 % 8) ^ 1 ^ 5) ^ floor($r1 / pow(2, ($r1 % 8) ^ 1)) % 8; 
+                $output = "$val$output";
+                $r1 = floor($r1 / pow(2, 3)); 
+                if (! $r1) {
+                    break;
+                }
+            }  
+            
+            if (! str_starts_with($output, $lockedDigits)) {
+                $i += $incrementor;
+            } else {
+                $foundDigits++;
+                $lockedDigits = substr($target, 0, $foundDigits);
+                $incrementor = pow(8, strlen($target) - strlen($lockedDigits) - 1);
             }
-            if ($this->compute($i, $this->r2, $this->r3, $this->commands, true) == $target) {
-                return new TaskOutput($i);
+
+            if ($output == $target) {
+                return new TaskOutput(sprintf("%.0f ",$i));
             }
-            $i++;
-        }
+            $i += $incrementor;
+        } while ($loop++ < 100000);
         return new TaskOutput(0);
     }
 };
